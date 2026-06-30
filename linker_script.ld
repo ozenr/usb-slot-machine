@@ -18,11 +18,19 @@ SECTIONS
 		. = ALIGN(4);
 
 		*(.text)
+		*(.text.*)
 		*(.rodata)
+		*(.rodata.*)
+		KEEP(*(.init))
+		KEEP(*(.fini))
+		*(.eh_frame)
+		*(.ARM.exidx)
 
 		. = ALIGN(4);
 		_etext = .;
 	} >FLASH
+
+	_sidata = LOADADDR(.data);
 
 	.data :
 	{
@@ -30,6 +38,9 @@ SECTIONS
 		_sdata = .;
 
 		*(.data)
+		*(.data.*)
+		KEEP(*(.init_array))
+		KEEP(*(.fini_array))
 
 		. = ALIGN(4);
 		_edata = .;
@@ -39,10 +50,13 @@ SECTIONS
 	{
 		. = ALIGN(4);
 		_sbss = .;
+		__bss_start__ = _sbss;
 
 		*(.bss)
+		*(.bss.*)
 
 		. = ALIGN(4);
 		_ebss = .;
+		__bss_end__ = _ebss;
 	} >SRAM
 }

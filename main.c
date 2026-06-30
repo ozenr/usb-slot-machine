@@ -1,28 +1,11 @@
 #include "stm32f4xx.h"
 #include <stdint.h>
 
-// No Need For These Addresses with CMSIS
-// #define PERIPHERAL_BASE (0x40000000U)
-// #define AHB1_BASE (PERIPHERAL_BASE + 0x20000U)
-// #define RCC_BASE (0x40023800U)
-// #define GPIOA_BASE (0x40020000U)
-
-// // Peripheral Clock Config
-// #define RCC_AHB1ENR_OFFSET (0x30U)
-// #define RCC_AHB1ENR ((volatile uint32_t *)(RCC_BASE + RCC_AHB1ENR_OFFSET))
-// #define RCC_AHB1ENR_GPIOAEN (0x00U)
-
-// // GPIO Config
-// #define GPIO_MODER_OFFSET (0x00U)
-// #define GPIOA_MODER ((volatile uint32_t *)(GPIOA_BASE + GPIO_MODER_OFFSET))
-// #define GPIO_MODER_MODER5 (10U)
-// #define GPIO_MODER_MODER10 (20U)
-// #define GPIO_ODR_OFFSET (0x14U)
-// #define GPIOA_ODR ((volatile uint32_t *)(GPIOA_BASE + GPIO_ODR_OFFSET))
-
+// Pin Declarations
 #define LED_PIN (10U)
 #define BEAM_PIN (5U)
 
+// Serial Clock
 void clock_init();
 void delay_ms(uint32_t ms);
 volatile uint32_t ticks;
@@ -86,8 +69,8 @@ void clock_init() {
 
   // Block the Internal Clock's Control Register (CR) until The External Clock
   // Is Ready
-  while (!(RCC->CR & RCC_CR_HSERDY_Msk))
-    ;
+  while (!(RCC->CR & RCC_CR_HSERDY_Msk)) {
+  }
 
   // Clear PLLM, N, AND P
   RCC->PLLCFGR &=
@@ -102,13 +85,13 @@ void clock_init() {
 
   // Enable PLL
   RCC->CR |= (RCC_CR_PLLON_Msk);
-  while (!(RCC->CR & RCC_CR_PLLRDY_Msk))
-    ;
+  while (!(RCC->CR & RCC_CR_PLLRDY_Msk)) {
+  }
 
   // Take PLL Output to Use as System Clock
   RCC->CFGR |= (RCC_CFGR_SW_PLL << RCC_CFGR_SW_Pos);
-  while (!(RCC->CFGR & RCC_CFGR_SWS_PLL))
-    ;
+  while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)) {
+  }
 }
 
 void systick_handler() { ticks++; }
@@ -118,10 +101,10 @@ void delay_ms(uint32_t ms) {
   uint32_t end = start + ms;
 
   if (end < start) {
-    while (ticks > start)
-      ;
+    while (ticks > start) {
+    }
   }
 
-  while (ticks < end)
-    ;
+  while (ticks < end) {
+  }
 }

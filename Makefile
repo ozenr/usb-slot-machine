@@ -1,15 +1,18 @@
 # ARM Cross Compiler Flags
 CC=arm-none-eabi-gcc
-CFLAGS=-mcpu=cortex-m4 -mthumb -nostdlib # compiler flags
+CFLAGS=-mcpu=cortex-m4 -mthumb # compiler flags
 CPPFLAGS=-DSTM32F401xE -Ivendor/CMSIS/CMSIS/Core/Include -Ivendor/ST/STM32F4/Include # pre-processor
 LINKER_SCRIPT=linker_script.ld
-LDFLAGS=-T $(LINKER_SCRIPT)
+LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
 
 # Default Target
 all: blinky.elf
 
-blinky.elf: main.o startup.o system_stm32f4xx.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) main.o startup.o system_stm32f4xx.o -o blinky.elf
+blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o blinky.elf
+
+syscalls.o: syscalls.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) syscalls.c -c 
 
 main.o: main.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) main.c -c
@@ -27,3 +30,16 @@ PFLAGS=-f interface/stlink.cfg -f target/stm32f4x.cfg
 flash: blinky.elf
 	$(PROGRAMMER) $(PFLAGS) -c "program blinky.elf verify reset exit"
 	rm -f *.o
+
+# Nice Shortcut Commands
+.PHONY: clean
+clean:
+	rm -rf *.o blinky.elf
+
+.PHONY: objdump
+objdump:
+	arm-none-eabi-objdump -h blinky.elf > objdump.txt
+
+.PHONY: size
+size:
+	arm-none-eabi-size blinky.elf
