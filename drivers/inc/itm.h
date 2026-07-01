@@ -9,7 +9,7 @@
 /*
  * @brief Initializes Trace port and unlocks hardware
  */
-void init_itm(void);
+void itm_init(void);
 
 /*
  * @brief Transmits single character through SWO pin

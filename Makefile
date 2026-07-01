@@ -1,15 +1,17 @@
 # ARM Cross Compiler Flags
 CC=arm-none-eabi-gcc
-CFLAGS=-mcpu=cortex-m4 -mthumb # compiler flags
-CPPFLAGS=-DSTM32F401xE -Ivendor/CMSIS/CMSIS/Core/Include -Ivendor/ST/STM32F4/Include # pre-processor
+CFLAGS=-mcpu=cortex-m4 -mthumb  # compiler flags
+CPPFLAGS=-DSTM32F401xE -Ivendor/CMSIS/CMSIS/Core/Include -Ivendor/ST/STM32F4/Include -Idrivers/inc # pre-processor
 LINKER_SCRIPT=linker_script.ld
 LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
+
+# SRC Files
 
 # Default Target
 all: blinky.elf
 
-blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o blinky.elf
+blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o blinky.elf
 
 syscalls.o: syscalls.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) syscalls.c -c 
@@ -23,13 +25,18 @@ startup.o: startup.c
 system_stm32f4xx.o: vendor/ST/STM32F4/Source/Templates/system_stm32f4xx.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) vendor/ST/STM32F4/Source/Templates/system_stm32f4xx.c -c
 
+itm.o: drivers/src/itm.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/itm.c -c
+
 # Flash/Programmer Flags
 PROGRAMMER=openocd
 PFLAGS=-f interface/stlink.cfg -f target/stm32f4x.cfg
 
 flash: blinky.elf
 	$(PROGRAMMER) $(PFLAGS) -c "program blinky.elf verify reset exit"
-	rm -f *.o
+
+trace: blinky.elf
+	$(PROGRAMMER) $(PFLAGS) -c "init" -c "reset halt" -c "stm32f4x.tpiu configure -protocol uart -output /dev/stdout -formatter off -traceclk 84000000" -c "stm32f4x.tpiu enable" -c "itm port 0 on" -c resume
 
 # Nice Shortcut Commands
 .PHONY: clean

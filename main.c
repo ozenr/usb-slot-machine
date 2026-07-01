@@ -1,5 +1,7 @@
+#include "itm.h"
 #include "stm32f4xx.h"
 #include <stdint.h>
+#include <stdio.h>
 
 // Pin Declarations
 #define LED_PIN (10U)
@@ -14,6 +16,9 @@ void main(void) {
   // Initialize Clock
   clock_init();
   SystemCoreClockUpdate();
+
+  // Enable ITM
+  itm_init();
 
   // Enable GPIO A and GPIO B
   RCC->AHB1ENR |=
@@ -44,6 +49,7 @@ void main(void) {
       // Turn LED OFF
       GPIOA->ODR |= (1 << LED_PIN);
     }
+    printf("Test\n");
     delay_ms(500);
   }
 }

@@ -1,3 +1,4 @@
+#include "itm.h"
 #include <sys/types.h>
 
 register char *stack_ptr asm("sp"); // tell gcc to keep this in a CPU register
@@ -23,4 +24,14 @@ caddr_t _sbrk(int incr) {
 
   heap_end += incr;
   return (caddr_t)prev_heap_end;
+}
+
+// write syscall
+int _write(int file, char *ptr, int len) {
+  (void)file;
+  for (int i = 0; i < len; ++i) {
+    itm_sendchar(*ptr++);
+  }
+
+  return len;
 }
