@@ -34,6 +34,10 @@
 #define CS_PIN 0
 
 /*
- * @brief Initializes ST7735S
+ * @brief struct for storing st7735s config settings
  */
+typedef struct {
+
+} st7735s_config_t;
+
 void st7735s_init(void);

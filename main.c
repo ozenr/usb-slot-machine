@@ -49,8 +49,7 @@ void main(void) {
       // Turn LED OFF
       GPIOA->ODR |= (1 << LED_PIN);
     }
-    printf("Test\n");
-    delay_ms(500);
+    delay_ms(500U);
   }
 }
 
@@ -100,8 +99,12 @@ void clock_init() {
   }
 }
 
+// Handler We Initialize Here
 void systick_handler() { ticks++; }
 
+/*
+ * @brief delays code execution
+ */
 void delay_ms(uint32_t ms) {
   uint32_t start = ticks;
   uint32_t end = start + ms;
