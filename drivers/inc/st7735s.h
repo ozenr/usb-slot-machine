@@ -1,3 +1,7 @@
+#ifndef ST7735S_H
+#define ST7735S_H
+
+// External Libraries
 #include "stm32f4xx.h"
 /*
  * @brief Command Registers
@@ -41,3 +45,5 @@ typedef struct {
 } st7735s_config_t;
 
 void st7735s_init(void);
+
+#endif

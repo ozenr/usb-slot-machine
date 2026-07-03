@@ -21,8 +21,8 @@ void main(void) {
   itm_init();
 
   // Enable GPIO A and GPIO B
-  RCC->AHB1ENR |=
-      (1 << RCC_AHB1ENR_GPIOAEN_Pos) | (1 << RCC_AHB1ENR_GPIOBEN_Pos);
+  RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOAEN_Pos);
+  RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOBEN_Pos);
 
   // do two dummy reads after enabling the peripheral clock, as per the errata
   volatile uint32_t dummy;
