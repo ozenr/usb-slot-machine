@@ -27,7 +27,7 @@ void spi_init(SPI_TypeDef *spi_regs, spi_config_t *spi_settings) {
   spi_regs->CR1 |= SPI_CR1_SPE;
 }
 
-void spi_write(SPI_TypeDef *spi_regs, uint16_t data) {
+void spi_write(SPI_TypeDef *spi_regs, uint8_t data) {
   // Check For Bidirectional Mode
   if (spi_regs->CR1 & SPI_DIR_HALF_DUPLEX) {
     spi_regs->CR1 |= SPI_CR1_BIDIOE;
@@ -49,7 +49,7 @@ uint16_t spi_read(SPI_TypeDef *spi_regs) {
   // Send Out Dummy Data for Spi Exchange
   spi_write(spi_regs, 0x00);
 
-  uint16_t data;
+  uint8_t data;
   // Check For Bidirectional Mode
   if (spi_regs->CR1 & SPI_DIR_HALF_DUPLEX) {
     spi_regs->CR1 &= ~(1 << SPI_CR1_BIDIOE);

@@ -55,19 +55,19 @@ typedef struct {
 } st7735s_dev_t;
 
 /*
- * @brief Initializes communication and display devuration
- */
-void st7735s_init(st7735s_dev_t *dev);
-
-/*
  * @brief Write function to send commands to display
  */
-void st7735s_write_cmd(st7735s_dev_t *dev, uint8_t cmd);
+void st7735s_write_cmd(st7735s_dev_t *dev, uint16_t cmd);
 
 /*
  * @brief Write function to send frame data to display
  */
-void st7735s_write_data(st7735s_dev_t *dev, uint8_t data);
+void st7735s_write_data(st7735s_dev_t *dev, uint16_t data);
+
+/*
+ * @brief Initializes communication and display devuration
+ */
+void st7735s_init(st7735s_dev_t *dev);
 
 /*
  * @brief Read function to receive display data (may not need)

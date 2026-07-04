@@ -16,7 +16,7 @@ void clock_init();
 void delay_ms(uint32_t ms);
 volatile uint32_t ticks;
 
-spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_16_BIT, SPI_DIR_FULL_DUPLEX,
+spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_8_BIT, SPI_DIR_FULL_DUPLEX,
                              SPI_CLOCK_MODE_1, SPI_BAUD_RATE_DIV2};
 
 void main(void) {

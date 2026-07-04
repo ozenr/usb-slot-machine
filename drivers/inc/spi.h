@@ -79,10 +79,10 @@ void spi_init(SPI_TypeDef *spi_regs, spi_config_t *spi_settings);
 /*
  * @brief Sends over data into SPI TX buffer
  */
-void spi_write(SPI_TypeDef *spi_regs, uint16_t data);
+void spi_write(SPI_TypeDef *spi_regs, uint8_t data);
 
 /*
  * @brief Returns data read from SPI RX buffer
  */
-uint16_t spi_read(SPI_TypeDef *spi_regs);
+uint8_t spi_read(SPI_TypeDef *spi_regs);
 #endif
