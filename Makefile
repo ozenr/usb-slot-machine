@@ -10,7 +10,7 @@ LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
 # Default Target
 all: blinky.elf
 
-blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o
+blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o blinky.elf
 
 syscalls.o: syscalls.c
@@ -27,6 +27,9 @@ system_stm32f4xx.o: vendor/ST/STM32F4/Source/Templates/system_stm32f4xx.c
 
 itm.o: drivers/src/itm.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/itm.c -c
+
+spi.o: drivers/src/spi.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/spi.c -c
 
 # Flash/Programmer Flags
 PROGRAMMER=openocd

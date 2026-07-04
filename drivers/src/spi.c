@@ -10,7 +10,7 @@ void spi_init(SPI_TypeDef *spi_regs, spi_config_t *spi_settings) {
   } else if (spi_regs == SPI3) {
     RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;
   } else if (spi_regs == SPI4) {
-    RCC->APB1ENR |= RCC_APB1ENR_SPI4EN;
+    RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
   }
 
   // Clear Control Register 1
@@ -19,13 +19,9 @@ void spi_init(SPI_TypeDef *spi_regs, spi_config_t *spi_settings) {
   // Configure Based on Spi Settings
   spi_regs->CR1 |= spi_settings->mode;
   spi_regs->CR1 |= spi_settings->direction;
-  spi_regs->CR1 |= spi_settings->data;
-  spi_regs->CR1 |= spi_settings->clock_config.cpol;
-  spi_regs->CR1 |= spi_settings->clock_config.cpha;
-  spi_regs->CR1 |= spi_settings->clock_config.baud_rate;
-
-  // TESTING: LOOPBACK
-  spi_regs->CR1 |= SPI_CR1_
+  spi_regs->CR1 |= spi_settings->data_size;
+  spi_regs->CR1 |= spi_settings->clock_mode;
+  spi_regs->CR1 |= spi_settings->baud_rate;
 
   // Start SPI Communication
   spi_regs->CR1 |= SPI_CR1_SPE;

@@ -1,4 +1,8 @@
+// Internal Libraries
 #include "itm.h"
+#include "spi.h"
+
+// External Libraries
 #include "stm32f4xx.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -12,6 +16,9 @@ void clock_init();
 void delay_ms(uint32_t ms);
 volatile uint32_t ticks;
 
+spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_16_BIT, SPI_DIR_FULL_DUPLEX,
+                             SPI_CLOCK_MODE_1, SPI_BAUD_RATE_DIV2};
+
 void main(void) {
   // Initialize Clock
   clock_init();
@@ -19,6 +26,11 @@ void main(void) {
 
   // Enable ITM
   itm_init();
+
+  // Initialize SPI
+  uint16_t tx_data = 0xAA55;
+  uint16_t rx_data = 0;
+  spi_init(SPI1, &spi_settings);
 
   // Enable GPIO A and GPIO B
   RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOAEN_Pos);
