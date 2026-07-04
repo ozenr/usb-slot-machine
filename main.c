@@ -1,6 +1,7 @@
 // Internal Libraries
 #include "itm.h"
 #include "spi.h"
+#include "st7735s.h"
 
 // External Libraries
 #include "stm32f4xx.h"
@@ -16,8 +17,12 @@ void clock_init();
 void delay_ms(uint32_t ms);
 volatile uint32_t ticks;
 
+// SPI Config
 spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_8_BIT, SPI_DIR_FULL_DUPLEX,
                              SPI_CLOCK_MODE_1, SPI_BAUD_RATE_DIV2};
+
+// Display Config
+st
 
 void main(void) {
   // Initialize Clock
@@ -28,39 +33,37 @@ void main(void) {
   itm_init();
 
   // Initialize SPI
-  uint16_t tx_data = 0xAA55;
-  uint16_t rx_data = 0;
   spi_init(SPI1, &spi_settings);
 
-  // Enable GPIO A and GPIO B
+  // Enable GPIO A
   RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOAEN_Pos);
-  RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOBEN_Pos);
+  // RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOBEN_Pos);
 
   // do two dummy reads after enabling the peripheral clock, as per the errata
   volatile uint32_t dummy;
   dummy = RCC->AHB1ENR;
-  dummy = RCC->AHB1ENR;
+  // dummy = RCC->AHB1ENR
 
   SysTick_Config(84000000U / 1000U);
   __enable_irq();
 
   // Configure LED GPIO to Output
-  GPIOA->MODER &= ~(GPIO_MODER_MODER10_Msk); // clear bits first
-  GPIOA->MODER |= (1 << GPIO_MODER_MODER10_Pos);
+  // GPIOA->MODER &= ~(GPIO_MODER_MODER10_Msk); // clear bits first
+  // GPIOA->MODER |= (1 << GPIO_MODER_MODER10_Pos);
 
-  // Configure Sensor GPIO to Input (clear bits)
-  GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
+  // // Configure Sensor GPIO to Input (clear bits)
+  // GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
 
   // Superloop
   while (1) {
-    uint8_t port_state = (GPIOB->IDR >> BEAM_PIN) & 1;
-    if (port_state) {
-      // Turn LED ON
-      GPIOA->ODR &= ~(1 << LED_PIN);
-    } else {
-      // Turn LED OFF
-      GPIOA->ODR |= (1 << LED_PIN);
-    }
+    // uint8_t port_state = (GPIOB->IDR >> BEAM_PIN) & 1;
+    // if (port_state) {
+    //   // Turn LED ON
+    //   GPIOA->ODR &= ~(1 << LED_PIN);
+    // } else {
+    //   // Turn LED OFF
+    //   GPIOA->ODR |= (1 << LED_PIN);
+    // }
     delay_ms(500U);
   }
 }

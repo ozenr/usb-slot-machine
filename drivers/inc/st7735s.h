@@ -22,6 +22,10 @@ extern void delay_ms(uint32_t ms);
 #define ST7735S_MADCTL 0x36U
 #define ST7735S_COLMOD 0x3AU
 
+// MADCTL & COLMOD Parameters
+#define MADCTL_CFG 0x00
+#define COLMOD_16_BIT 0x05
+
 // READ DISPLAY SETTING ADDRESSES
 #define ST7735S_RDDST 0x09U
 #define ST7735S_RDDPM 0x0AU
