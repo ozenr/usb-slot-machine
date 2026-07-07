@@ -5,12 +5,10 @@ CPPFLAGS=-DSTM32F401xE -Ivendor/CMSIS/CMSIS/Core/Include -Ivendor/ST/STM32F4/Inc
 LINKER_SCRIPT=linker_script.ld
 LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
 
-# SRC Files
-
 # Default Target
 all: blinky.elf
 
-blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o
+blinky.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o st7735s.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o blinky.elf
 
 syscalls.o: syscalls.c
@@ -30,6 +28,9 @@ itm.o: drivers/src/itm.c
 
 spi.o: drivers/src/spi.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/spi.c -c
+
+st7735s.o: drivers/src/st7735s.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/st7735s.c -c
 
 # Flash/Programmer Flags
 PROGRAMMER=openocd

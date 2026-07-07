@@ -1,3 +1,4 @@
+// Internal Libraries
 #include "st7735s.h"
 
 void st7735s_write_cmd(st7735s_dev_t *dev, uint8_t cmd) {
@@ -15,6 +16,10 @@ void st7735s_write_cmd(st7735s_dev_t *dev, uint8_t cmd) {
 }
 
 void st7735s_write_data(st7735s_dev_t *dev, uint8_t data) {
+  if (!dev || !dev->reset_port) {
+    return;
+  }
+
   // Set CS to LOW
   dev->cs_port->BSRR = (1 << (dev->cs_pin + 16));
 
@@ -26,6 +31,38 @@ void st7735s_write_data(st7735s_dev_t *dev, uint8_t data) {
 
   // Shifts CS Back to HIGH
   dev->cs_port->BSRR = (1 << dev->cs_pin);
+}
+
+void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
+                        uint16_t y1, uint16_t y2) {
+  // Check For Valid Display Coordinates
+  if (x1 > x2 || y1 > y2) {
+    printf("START > END\n");
+    return;
+  }
+  if (x1 >= 128 || x2 >= 128 || y1 >= 128 || y2 >= 128) {
+    printf("COORDINATE OUT OF BOUNDS\n");
+  }
+
+  // Set Column Size
+  st7735s_write_cmd(dev, ST7735S_CASET);
+  st7735s_write_data(dev, (uint8_t)(x1 >> 8)); // split into two different bytes
+  st7735s_write_data(dev, (uint8_t)(x1 & 0x00FF));
+  st7735s_write_data(dev, (uint8_t)(x2 >> 8));
+  st7735s_write_data(dev, (uint8_t)(x2 & 0x00FF));
+
+  // Set Row Size
+  st7735s_write_cmd(dev, ST7735S_RASET);
+  st7735s_write_data(dev, (uint8_t)(y1 >> 8)); // split into two different bytes
+  st7735s_write_data(dev, (uint8_t)(y1 & 0x00FF));
+  st7735s_write_data(dev, (uint8_t)(y2 >> 8));
+  st7735s_write_data(dev, (uint8_t)(y2 & 0x00FF));
+}
+
+void st7735s_write_pixel_data(st7735s_dev_t *dev, uint8_t px) {
+  // Set Memory Write
+  st7735s_write_cmd(dev, ST7735S_RAMWR);
+  st7735s_write_data(dev, )
 }
 
 void st7735s_init(st7735s_dev_t *dev) {
@@ -41,14 +78,14 @@ void st7735s_init(st7735s_dev_t *dev) {
 
   // Send SLPOUT Command (display starts off in sleep mode after turn on)
   st7735s_write_cmd(dev, ST7735S_SLPOUT);
-  delay(500);
+  delay_ms(500);
 
   // Configure COLMOD & MADCTL
   st7735s_write_cmd(dev, ST7735S_COLMOD);
-  st7735s_write_data(dev, COLMOD_16_BIT);
+  st7735s_write_data(dev, dev->colmod);
 
   st7735s_write_cmd(dev, ST7735S_MADCTL);
-  st7735s_write_data(dev, MADCTL_CFG);
+  st7735s_write_data(dev, dev->madctl);
 
   // Turn Display ON
   st7735s_write_cmd(dev, ST7735S_DISPON);

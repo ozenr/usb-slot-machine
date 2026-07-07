@@ -8,9 +8,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
-// Pin Declarations
-#define LED_PIN (10U)
-#define BEAM_PIN (5U)
+// GPIO Port A Declarations
+#define LED_PIN 6U
+#define RESET_PIN 9U
+#define SCK_PIN 5U
+#define SDA_PIN 7U
+
+// GPIO Port B
+#define A0_PIN 8U
+#define CS_PIN 10U
+
+// #define BEAM_PIN (5U)
 
 // Serial Clock
 void clock_init();
@@ -18,44 +26,83 @@ void delay_ms(uint32_t ms);
 volatile uint32_t ticks;
 
 // SPI Config
-spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_8_BIT, SPI_DIR_FULL_DUPLEX,
-                             SPI_CLOCK_MODE_1, SPI_BAUD_RATE_DIV2};
+const spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_8_BIT,
+                                   SPI_DIR_FULL_DUPLEX, SPI_CLOCK_MODE_0,
+                                   SPI_BAUD_RATE_DIV16};
 
 // Display Config
-st
+st7735s_dev_t st7735s_settings = {
+    .spi_regs = SPI1, .spi_settings = spi_settings,   
+    .dc_port = GPIOB, .dc_pin = A0_PIN, .reset_port = GPIOA,
+    .reset_pin = RESET_PIN, .cs_port = GPIOB, .cs_pin = CS_PIN, 
+    .colmod = COLMOD_16, .madctl = MADCTL_LANDSCAPE};
 
 void main(void) {
   // Initialize Clock
   clock_init();
   SystemCoreClockUpdate();
 
-  // Enable ITM
-  itm_init();
-
-  // Initialize SPI
-  spi_init(SPI1, &spi_settings);
-
-  // Enable GPIO A
-  RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOAEN_Pos);
-  // RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOBEN_Pos);
-
   // do two dummy reads after enabling the peripheral clock, as per the errata
   volatile uint32_t dummy;
   dummy = RCC->AHB1ENR;
-  // dummy = RCC->AHB1ENR
+  dummy = RCC->AHB1ENR;
 
+  // Initiate ITM for Debugging
+  itm_init();
+
+  // Enable GPIO A and B Clock
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+
+  // Enable SPI Clock
+  RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
+
+  // Configure GPIO for SPI
+  GPIOA->MODER &= ~(GPIO_MODER_MODER5_Msk); // clear mode bits first
+  GPIOA->MODER &= ~(GPIO_MODER_MODER7_Msk);
+  GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL5 | GPIO_AFRL_AFSEL7); // clear AFRL bits
+
+  // Set to AF Mode
+  GPIOA->MODER |= GPIO_MODER_MODER5_1;
+  GPIOA->MODER |= GPIO_MODER_MODER7_1;
+
+  // Shift AF5
+  GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL5_Pos);
+  GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFSEL7_Pos);
+
+  // Configure Other GPIO Pins for Display
+  // a0
+  GPIOB->MODER &= ~(GPIO_MODER_MODER8_Msk);
+  GPIOB->MODER |= GPIO_MODER_MODER8_0;
+
+  // reset
+  GPIOA->MODER &= ~(GPIO_MODER_MODER9_Msk);
+  GPIOA->MODER |= GPIO_MODER_MODER9_0;
+
+  // cs
+  GPIOB->MODER &= ~(GPIO_MODER_MODER10_Msk);
+  GPIOB->MODER |= GPIO_MODER_MODER10_0;
+
+  // Initialize SPI & Driver
+  spi_init(SPI1, &spi_settings);
+
+  // Start Timer
   SysTick_Config(84000000U / 1000U);
   __enable_irq();
 
+  // st7735s_settings.spi_settings = spi_settings;
+  st7735s_init(&st7735s_settings);
+
   // Configure LED GPIO to Output
-  // GPIOA->MODER &= ~(GPIO_MODER_MODER10_Msk); // clear bits first
-  // GPIOA->MODER |= (1 << GPIO_MODER_MODER10_Pos);
+  GPIOA->MODER &= ~(GPIO_MODER_MODER6_Msk); // clear bits first
+  GPIOA->MODER |= (1 << GPIO_MODER_MODER6_Pos);
 
-  // // Configure Sensor GPIO to Input (clear bits)
-  // GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
-
+  // Configure Sensor GPIO to Input (clear bits)
+  GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
   // Superloop
   while (1) {
+    // Turn on LED BACKLIGHT
+    GPIOA->ODR |= (1 << LED_PIN);
     // uint8_t port_state = (GPIOB->IDR >> BEAM_PIN) & 1;
     // if (port_state) {
     //   // Turn LED ON
