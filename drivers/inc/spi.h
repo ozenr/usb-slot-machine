@@ -74,7 +74,7 @@ typedef struct {
  * @brief Initializes SPI communication with given registers and settings
  * @param spi_regs holds the registers for specific spi version
  */
-void spi_init(SPI_TypeDef *spi_regs, spi_config_t *spi_settings);
+void spi_init(SPI_TypeDef *spi_regs, const spi_config_t *spi_settings);
 
 /*
  * @brief Sends over data into SPI TX buffer

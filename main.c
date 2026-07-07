@@ -9,10 +9,10 @@
 #include <stdio.h>
 
 // GPIO Port A Declarations
-#define LED_PIN 6U
-#define RESET_PIN 9U
-#define SCK_PIN 5U
-#define SDA_PIN 7U
+#define LED_PIN 6U // D12
+#define RESET_PIN 9U // D8
+#define SCK_PIN 5U // D13
+#define SDA_PIN 7U // D11
 
 // GPIO Port B
 #define A0_PIN 8U
@@ -28,18 +28,28 @@ volatile uint32_t ticks;
 // SPI Config
 const spi_config_t spi_settings = {SPI_MASTER_MODE, SPI_8_BIT,
                                    SPI_DIR_FULL_DUPLEX, SPI_CLOCK_MODE_0,
-                                   SPI_BAUD_RATE_DIV16};
+                                   SPI_BAUD_RATE_DIV128};
 
 // Display Config
-st7735s_dev_t st7735s_settings = {
-    .spi_regs = SPI1, .spi_settings = spi_settings,   
-    .dc_port = GPIOB, .dc_pin = A0_PIN, .reset_port = GPIOA,
-    .reset_pin = RESET_PIN, .cs_port = GPIOB, .cs_pin = CS_PIN, 
-    .colmod = COLMOD_16, .madctl = MADCTL_LANDSCAPE};
+st7735s_dev_t st7735s_settings = {.spi_regs = SPI1,
+                                  .spi_settings = spi_settings,
+                                  .dc_port = GPIOB,
+                                  .dc_pin = A0_PIN,
+                                  .reset_port = GPIOA,
+                                  .reset_pin = RESET_PIN,
+                                  .cs_port = GPIOB,
+                                  .cs_pin = CS_PIN,
+                                  .colmod = COLMOD_16,
+                                  .madctl = MADCTL_PORTRAIT};
 
 void main(void) {
   // Initialize Clock
   clock_init();
+
+    // Start Timer
+  SysTick_Config(84000000U / 1000U);
+  __enable_irq();
+
   SystemCoreClockUpdate();
 
   // do two dummy reads after enabling the peripheral clock, as per the errata
@@ -62,6 +72,9 @@ void main(void) {
   GPIOA->MODER &= ~(GPIO_MODER_MODER7_Msk);
   GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL5 | GPIO_AFRL_AFSEL7); // clear AFRL bits
 
+  // Set PA5 and PA7 to Very High Speed 
+  GPIOA->OSPEEDR |= (GPIO_OSPEEDER_OSPEEDR5 | GPIO_OSPEEDER_OSPEEDR7);
+
   // Set to AF Mode
   GPIOA->MODER |= GPIO_MODER_MODER5_1;
   GPIOA->MODER |= GPIO_MODER_MODER7_1;
@@ -78,27 +91,26 @@ void main(void) {
   // reset
   GPIOA->MODER &= ~(GPIO_MODER_MODER9_Msk);
   GPIOA->MODER |= GPIO_MODER_MODER9_0;
+  GPIOA->ODR |= (1 << RESET_PIN); // force high
 
   // cs
   GPIOB->MODER &= ~(GPIO_MODER_MODER10_Msk);
   GPIOB->MODER |= GPIO_MODER_MODER10_0;
+  GPIOB->ODR |= (1 << CS_PIN);
 
   // Initialize SPI & Driver
   spi_init(SPI1, &spi_settings);
 
-  // Start Timer
-  SysTick_Config(84000000U / 1000U);
-  __enable_irq();
-
-  // st7735s_settings.spi_settings = spi_settings;
   st7735s_init(&st7735s_settings);
-
+  st7735s_set_window(&st7735s_settings, 0, 127, 0, 127);
+  // TODO: Set Colour inversion
+  st7735s_fill_window(&st7735s_settings, 0xF800); //supposed to be red
   // Configure LED GPIO to Output
   GPIOA->MODER &= ~(GPIO_MODER_MODER6_Msk); // clear bits first
   GPIOA->MODER |= (1 << GPIO_MODER_MODER6_Pos);
 
-  // Configure Sensor GPIO to Input (clear bits)
-  GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
+  // // Configure Sensor GPIO to Input (clear bits)
+  // GPIOB->MODER &= ~(GPIO_MODER_MODER5_Msk);
   // Superloop
   while (1) {
     // Turn on LED BACKLIGHT

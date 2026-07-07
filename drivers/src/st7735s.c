@@ -1,18 +1,21 @@
 // Internal Libraries
 #include "st7735s.h"
 
-void st7735s_write_cmd(st7735s_dev_t *dev, uint8_t cmd) {
-  // Set CS to LOW
-  dev->cs_port->BSRR = (1 << (dev->cs_pin + 16));
+// Functions to Select and Deselect CS
+static inline void set_cs_high(st7735s_dev_t *dev) {
+  dev->cs_port->BSRR = (1 << dev->cs_pin);
+}
 
+static inline void set_cs_low(st7735s_dev_t *dev) {
+  dev->cs_port->BSRR = (1 << (dev->cs_pin + 16));
+}
+
+void st7735s_write_cmd(st7735s_dev_t *dev, uint8_t cmd) {
   // Set DC to LOW (shifts to Command mode)
   dev->dc_port->BSRR = (1 << (dev->dc_pin + 16));
 
   // Write command to display
   spi_write(dev->spi_regs, cmd);
-
-  // Shift CS Back to HIGH
-  dev->cs_port->BSRR = (1 << dev->cs_pin);
 }
 
 void st7735s_write_data(st7735s_dev_t *dev, uint8_t data) {
@@ -20,17 +23,11 @@ void st7735s_write_data(st7735s_dev_t *dev, uint8_t data) {
     return;
   }
 
-  // Set CS to LOW
-  dev->cs_port->BSRR = (1 << (dev->cs_pin + 16));
-
   // Set DC to HIGH (shifts to Data mode)
   dev->dc_port->BSRR = (1 << dev->dc_pin);
 
   // Write data to display
   spi_write(dev->spi_regs, data);
-
-  // Shifts CS Back to HIGH
-  dev->cs_port->BSRR = (1 << dev->cs_pin);
 }
 
 void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
@@ -42,7 +39,11 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
   }
   if (x1 >= 128 || x2 >= 128 || y1 >= 128 || y2 >= 128) {
     printf("COORDINATE OUT OF BOUNDS\n");
+    return;
   }
+
+  // Pull CS Low
+  set_cs_low(dev);
 
   // Set Column Size
   st7735s_write_cmd(dev, ST7735S_CASET);
@@ -57,12 +58,23 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
   st7735s_write_data(dev, (uint8_t)(y1 & 0x00FF));
   st7735s_write_data(dev, (uint8_t)(y2 >> 8));
   st7735s_write_data(dev, (uint8_t)(y2 & 0x00FF));
+
+  // Pull cs High
+  set_cs_high(dev);
 }
 
-void st7735s_write_pixel_data(st7735s_dev_t *dev, uint8_t px) {
+void st7735s_fill_window(st7735s_dev_t *dev, uint16_t px) {
   // Set Memory Write
+  set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_RAMWR);
-  st7735s_write_data(dev, )
+
+  for (uint32_t i = 0; i < 16384; ++i) {
+    // split colour data
+    st7735s_write_data(dev, (px >> 8));
+    st7735s_write_data(dev, (px & 0x00FF));
+  }
+
+  set_cs_high(dev);
 }
 
 void st7735s_init(st7735s_dev_t *dev) {
@@ -73,21 +85,33 @@ void st7735s_init(st7735s_dev_t *dev) {
   delay_ms(100);
 
   // Send SW-RESET Command
+  set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_SWRESET);
+  set_cs_high(dev);
   delay_ms(150);
 
   // Send SLPOUT Command (display starts off in sleep mode after turn on)
+  set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_SLPOUT);
+  set_cs_high(dev);
   delay_ms(500);
 
   // Configure COLMOD & MADCTL
+  set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_COLMOD);
   st7735s_write_data(dev, dev->colmod);
 
   st7735s_write_cmd(dev, ST7735S_MADCTL);
   st7735s_write_data(dev, dev->madctl);
+  set_cs_high(dev);
+
+  set_cs_low(dev);
+  st7735s_write_cmd(dev, ST7735S_NORON);
+  set_cs_high(dev);
 
   // Turn Display ON
+  set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_DISPON);
+  set_cs_high(dev);
   delay_ms(100);
 }

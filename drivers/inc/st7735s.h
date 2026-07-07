@@ -24,10 +24,6 @@ extern void delay_ms(uint32_t ms);
 #define ST7735S_MADCTL 0x36U
 #define ST7735S_COLMOD 0x3AU
 
-// MADCTL & COLMOD Parameters
-#define MADCTL_CFG 0x00
-#define COLMOD_16_BIT 0x05
-
 // READ DISPLAY SETTING ADDRESSES
 #define ST7735S_RDDST 0x09U
 #define ST7735S_RDDPM 0x0AU
@@ -94,14 +90,14 @@ void st7735s_write_data(st7735s_dev_t *dev, uint8_t data);
  *           respectively
  *
  */
-void st7735s_set_window(st7735s_dev_t *dev, uin16_t x1, uint16_t x2,
+void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
                         uint16_t y1, uint16_t y2);
 
 /*
  * @brief Write function to write pixel data onto physical display
  * Requires: st7735s_set_window() is called first
  */
-void st7735s_write_pixel_data(st7735s_dev_t *dev, uint8_t px);
+void st7735s_fill_window(st7735s_dev_t *dev, uint16_t px);
 
 /*
  * @brief Initializes communication and display
