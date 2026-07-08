@@ -9,14 +9,19 @@
 #include <stdio.h>
 
 // GPIO Port A Declarations
-#define LED_PIN 6U // D12
+#define LED_PIN 6U   // D12
 #define RESET_PIN 9U // D8
-#define SCK_PIN 5U // D13
-#define SDA_PIN 7U // D11
+#define SCK_PIN 5U   // D13
+#define SDA_PIN 7U   // D11
 
 // GPIO Port B
 #define A0_PIN 8U
 #define CS_PIN 10U
+
+// Define Colours
+#define RED 0xF800
+#define BLUE 0x001F
+#define GREEN 0x07E0
 
 // #define BEAM_PIN (5U)
 
@@ -40,13 +45,13 @@ st7735s_dev_t st7735s_settings = {.spi_regs = SPI1,
                                   .cs_port = GPIOB,
                                   .cs_pin = CS_PIN,
                                   .colmod = COLMOD_16,
-                                  .madctl = MADCTL_PORTRAIT};
+                                  .madctl = MADCTL_BGR};
 
 void main(void) {
   // Initialize Clock
   clock_init();
 
-    // Start Timer
+  // Start Timer
   SysTick_Config(84000000U / 1000U);
   __enable_irq();
 
@@ -72,7 +77,7 @@ void main(void) {
   GPIOA->MODER &= ~(GPIO_MODER_MODER7_Msk);
   GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL5 | GPIO_AFRL_AFSEL7); // clear AFRL bits
 
-  // Set PA5 and PA7 to Very High Speed 
+  // Set PA5 and PA7 to Very High Speed
   GPIOA->OSPEEDR |= (GPIO_OSPEEDER_OSPEEDR5 | GPIO_OSPEEDER_OSPEEDR7);
 
   // Set to AF Mode
@@ -100,11 +105,12 @@ void main(void) {
 
   // Initialize SPI & Driver
   spi_init(SPI1, &spi_settings);
-
   st7735s_init(&st7735s_settings);
-  st7735s_set_window(&st7735s_settings, 0, 127, 0, 127);
-  // TODO: Set Colour inversion
-  st7735s_fill_window(&st7735s_settings, 0xF800); //supposed to be red
+
+  // Setup Window
+  st7735s_clear_window(&st7735s_settings); 
+  st7735s_set_window(&st7735s_settings, 30, 60, 70, 120);
+
   // Configure LED GPIO to Output
   GPIOA->MODER &= ~(GPIO_MODER_MODER6_Msk); // clear bits first
   GPIOA->MODER |= (1 << GPIO_MODER_MODER6_Pos);
@@ -115,14 +121,6 @@ void main(void) {
   while (1) {
     // Turn on LED BACKLIGHT
     GPIOA->ODR |= (1 << LED_PIN);
-    // uint8_t port_state = (GPIOB->IDR >> BEAM_PIN) & 1;
-    // if (port_state) {
-    //   // Turn LED ON
-    //   GPIOA->ODR &= ~(1 << LED_PIN);
-    // } else {
-    //   // Turn LED OFF
-    //   GPIOA->ODR |= (1 << LED_PIN);
-    // }
     delay_ms(500U);
   }
 }

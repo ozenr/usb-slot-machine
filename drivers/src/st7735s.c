@@ -34,11 +34,9 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
                         uint16_t y1, uint16_t y2) {
   // Check For Valid Display Coordinates
   if (x1 > x2 || y1 > y2) {
-    printf("START > END\n");
     return;
   }
   if (x1 >= 128 || x2 >= 128 || y1 >= 128 || y2 >= 128) {
-    printf("COORDINATE OUT OF BOUNDS\n");
     return;
   }
 
@@ -63,15 +61,20 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
   set_cs_high(dev);
 }
 
-void st7735s_fill_window(st7735s_dev_t *dev, uint16_t px) {
+void st7735s_clear_window(st7735s_dev_t *dev) {
+  const uint16_t COLOUR = 0xFFFF;
+
+  // Set Window to Entire Screen
+  st7735s_set_window(dev, 0, COL_X_MAX, 0, ROW_Y_MAX);
+
   // Set Memory Write
   set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_RAMWR);
 
   for (uint32_t i = 0; i < 16384; ++i) {
     // split colour data
-    st7735s_write_data(dev, (px >> 8));
-    st7735s_write_data(dev, (px & 0x00FF));
+    st7735s_write_data(dev, (COLOUR >> 8));
+    st7735s_write_data(dev, (COLOUR & 0x00FF));
   }
 
   set_cs_high(dev);
@@ -101,12 +104,9 @@ void st7735s_init(st7735s_dev_t *dev) {
   st7735s_write_cmd(dev, ST7735S_COLMOD);
   st7735s_write_data(dev, dev->colmod);
 
+  // set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_MADCTL);
   st7735s_write_data(dev, dev->madctl);
-  set_cs_high(dev);
-
-  set_cs_low(dev);
-  st7735s_write_cmd(dev, ST7735S_NORON);
   set_cs_high(dev);
 
   // Turn Display ON

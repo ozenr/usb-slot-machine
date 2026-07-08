@@ -33,7 +33,8 @@ extern void delay_ms(uint32_t ms);
 // WRITE DISPLAY SETTING ADDRESSES
 #define ST7735S_CASET 0x2AU // colummn address set
 #define ST7735S_RASET 0x2BU // row addresset set
-#define ST7735S_RAMWR 0x2CU
+#define ST7735S_RAMWR 0x2CU // memory write
+#define ST7735S_INVON 0x21U // invert colours
 
 // MAX BOUNDS FOR WINDOW RESOLUTION
 #define ROW_Y_MAX 0x7F
@@ -42,7 +43,16 @@ extern void delay_ms(uint32_t ms);
 /*
  * @brief Enum for MADCTL Configuration
  */
-typedef enum { MADCTL_PORTRAIT = 0x00, MADCTL_LANDSCAPE = 0x60 } madctl_cfg_t;
+typedef enum {
+  MADCTL_DEF = 0x00,
+  MADCTL_MY = 0x80,
+  MADCTL_MX = 0x40,
+  MADCTL_MV = 0x20,
+  MADCTL_ML = 0x10,
+  MADCTL_BGR = 0x08,
+  MADCTL_LANDSCAPE = 0x60,
+  MADCTL_MH = 0x01
+} madctl_cfg_t;
 
 /*
  * @brief Enum for COLMOD Configuration
@@ -94,10 +104,9 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
                         uint16_t y1, uint16_t y2);
 
 /*
- * @brief Write function to write pixel data onto physical display
- * Requires: st7735s_set_window() is called first
+ * @brief Write function to write fill/clear screen display (fills white)
  */
-void st7735s_fill_window(st7735s_dev_t *dev, uint16_t px);
+void st7735s_clear_window(st7735s_dev_t *dev);
 
 /*
  * @brief Initializes communication and display
