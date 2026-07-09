@@ -32,9 +32,10 @@ extern void delay_ms(uint32_t ms);
 
 // WRITE DISPLAY SETTING ADDRESSES
 #define ST7735S_CASET 0x2AU // colummn address set
-#define ST7735S_RASET 0x2BU // row addresset set
+#define ST7735S_RASET 0x2BU // row addres set
 #define ST7735S_RAMWR 0x2CU // memory write
 #define ST7735S_INVON 0x21U // invert colours
+#define ST7735S_TEON 0x35 // tearing effect 
 
 // MAX BOUNDS FOR WINDOW RESOLUTION
 #define ROW_Y_MAX 0x7F
@@ -106,7 +107,7 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
 /*
  * @brief Write function to write fill/clear screen display (fills white)
  */
-void st7735s_clear_window(st7735s_dev_t *dev);
+void st7735s_clear_window(st7735s_dev_t *dev, const uint16_t *frame);
 
 /*
  * @brief Initializes communication and display

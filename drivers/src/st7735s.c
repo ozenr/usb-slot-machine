@@ -61,20 +61,21 @@ void st7735s_set_window(st7735s_dev_t *dev, uint16_t x1, uint16_t x2,
   set_cs_high(dev);
 }
 
-void st7735s_clear_window(st7735s_dev_t *dev) {
-  const uint16_t COLOUR = 0xFFFF;
+void st7735s_clear_window(st7735s_dev_t *dev, const uint16_t *frame) {
+  // const uint16_t COLOUR = 0xFFFF;
 
   // Set Window to Entire Screen
-  st7735s_set_window(dev, 0, COL_X_MAX, 0, ROW_Y_MAX);
+  st7735s_set_window(dev, 0, 126, 0, 126);
 
   // Set Memory Write
   set_cs_low(dev);
   st7735s_write_cmd(dev, ST7735S_RAMWR);
 
-  for (uint32_t i = 0; i < 16384; ++i) {
+  for (uint32_t i = 0; i < 128 * 128; ++i) {
     // split colour data
-    st7735s_write_data(dev, (COLOUR >> 8));
-    st7735s_write_data(dev, (COLOUR & 0x00FF));
+    uint16_t colour = *(frame + i);
+    st7735s_write_data(dev, (colour >> 8));
+    st7735s_write_data(dev, (colour & 0x00FF));
   }
 
   set_cs_high(dev);
@@ -108,6 +109,7 @@ void st7735s_init(st7735s_dev_t *dev) {
   st7735s_write_cmd(dev, ST7735S_MADCTL);
   st7735s_write_data(dev, dev->madctl);
   set_cs_high(dev);
+  delay_ms(500);
 
   // Turn Display ON
   set_cs_low(dev);

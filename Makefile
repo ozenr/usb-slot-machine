@@ -1,6 +1,6 @@
 # ARM Cross Compiler Flags
 CC=arm-none-eabi-gcc
-CFLAGS=-mcpu=cortex-m4 -mthumb  # compiler flags
+CFLAGS=-mcpu=cortex-m4 -mthumb # compiler flags
 CPPFLAGS=-DSTM32F401xE -Ivendor/CMSIS/CMSIS/Core/Include -Ivendor/ST/STM32F4/Include -Idrivers/inc # pre-processor
 LINKER_SCRIPT=linker_script.ld
 LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
@@ -9,7 +9,7 @@ LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
 EXEC=app.elf
 all: $(EXEC)
 
-app.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o st7735s.o
+app.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o st7735s.o img_data.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $(EXEC)
 
 syscalls.o: syscalls.c
@@ -33,6 +33,9 @@ spi.o: drivers/src/spi.c
 st7735s.o: drivers/src/st7735s.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/st7735s.c -c
 
+img_data.o: img_data.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) img_data.c -c
+
 # Flash/Programmer Flags
 PROGRAMMER=openocd
 PFLAGS=-f interface/stlink.cfg -f target/stm32f4x.cfg
@@ -54,4 +57,4 @@ objdump:
 
 .PHONY: size
 size:
-	arm-none-eabi-size -Wl --print-memory-usage app.elf 
+	arm-none-eabi-size app.elf 
