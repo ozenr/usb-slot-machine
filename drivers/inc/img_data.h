@@ -8,5 +8,5 @@
 #define IMG_WIDTH 127
 
 // array size is 32258
-extern const uint16_t img[16129];
+extern const uint16_t win[16129];
 #endif

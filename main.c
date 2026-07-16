@@ -1,6 +1,7 @@
 // Internal Libraries
 #include "img_data.h"
 #include "itm.h"
+#include "lcg.h"
 #include "spi.h"
 #include "st7735s.h"
 
@@ -16,7 +17,7 @@
 #define SDA_PIN 7U   // D11
 
 // GPIO Port B
-#define A0_PIN 8U // D15
+#define A0_PIN 8U  // D15
 #define CS_PIN 10U // D6
 
 // Define Colours
@@ -109,7 +110,7 @@ void main(void) {
   st7735s_init(&st7735s_settings);
 
   // Setup Window
-  st7735s_clear_window(&st7735s_settings, img);
+  st7735s_clear_window(&st7735s_settings, win);
 
   // Configure LED GPIO to Output
   GPIOA->MODER &= ~(GPIO_MODER_MODER6_Msk); // clear bits first
@@ -121,6 +122,9 @@ void main(void) {
   while (1) {
     // Turn on LED BACKLIGHT
     GPIOA->ODR |= (1 << LED_PIN);
+    uint32_t seed = ticks;
+    uint32_t prng = randint(seed);
+    printf("prng: %u, squeezed: %u\n", prng, squeeze(prng, 255));
     delay_ms(500U);
   }
 }

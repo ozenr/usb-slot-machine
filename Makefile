@@ -9,7 +9,7 @@ LDFLAGS=-T $(LINKER_SCRIPT) --specs=nano.specs --specs=nosys.specs
 EXEC=app.elf
 all: $(EXEC)
 
-app.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o st7735s.o img_data.o
+app.elf: main.o startup.o system_stm32f4xx.o syscalls.o itm.o spi.o st7735s.o img_data.o lcg.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $(EXEC)
 
 syscalls.o: syscalls.c
@@ -33,8 +33,11 @@ spi.o: drivers/src/spi.c
 st7735s.o: drivers/src/st7735s.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/st7735s.c -c
 
-img_data.o: img_data.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) img_data.c -c
+img_data.o: drivers/src/img_data.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/img_data.c -c
+
+lcg.o: drivers/src/lcg.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) drivers/src/lcg.c -c
 
 # Flash/Programmer Flags
 PROGRAMMER=openocd
